@@ -11,12 +11,16 @@ buildscript {
 
 def DOCUMENTATION_GROUP = 'Documentation'
 
+def commonGithubOrg = 'grails'
+def commonGithubSlug = 'grails-common-build'
+def commonBranch = 'master'
+
 task prepareResources {
     group = DOCUMENTATION_GROUP
     description = 'Downloads grails-guides repository master branch and unzip it to build folder'   
     doLast {
         ant.mkdir(dir:buildDir)
-        ant.get(src:"https://github.com/${githubSlug}/archive/${githubBranch}.zip", dest:"${buildDir}/resources.zip")    
+        ant.get(src:"https://github.com/${commonGithubOrg}/${commonGithubSlug}/archive/${githubBranch}.zip", dest:"${buildDir}/resources.zip")    
         ant.unzip(src:"${buildDir}/resources.zip", dest:"${buildDir}/resources")
     }
 }
@@ -32,7 +36,7 @@ task copyLocalGuideImgResources(type: Copy) {
         include '*.svg'
         include '*.jpeg'
     }
-    into "${buildDir}/resources/${project.name}-${githubBranch}/src/main/resources/img"
+    into "${buildDir}/resources/${commonGithubSlug}-${githubBranch}/src/main/resources/img"
 }
 
 configurations {
