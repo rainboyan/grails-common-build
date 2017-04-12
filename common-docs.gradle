@@ -20,7 +20,7 @@ task prepareResources {
     description = 'Downloads grails-guides repository master branch and unzip it to build folder'   
     doLast {
         ant.mkdir(dir:buildDir)
-        ant.get(src:"https://github.com/${commonGithubOrg}/${commonGithubSlug}/archive/${githubBranch}.zip", dest:"${buildDir}/resources.zip")    
+        ant.get(src:"https://github.com/${commonGithubOrg}/${commonGithubSlug}/archive/${commonBranch}.zip", dest:"${buildDir}/resources.zip")    
         ant.unzip(src:"${buildDir}/resources.zip", dest:"${buildDir}/resources")
     }
 }
@@ -36,7 +36,7 @@ task copyLocalGuideImgResources(type: Copy) {
         include '*.svg'
         include '*.jpeg'
     }
-    into "${buildDir}/resources/${commonGithubSlug}-${githubBranch}/src/main/resources/img"
+    into "${buildDir}/resources/${commonGithubSlug}-${commonBranch}/src/main/resources/img"
 }
 
 configurations {
@@ -75,7 +75,7 @@ task publishGuide(type: grails.doc.gradle.PublishGuide) {
     description = 'Generate Guide'  
     dependsOn prepareResources, copyLocalGuideImgResources
 
-    def localResourcesDir = "${buildDir}/resources/${project.name}-${githubBranch}"
+    def localResourcesDir = "${buildDir}/resources/${commonGithubSlug}-${commonBranch}"
     targetDir = project.file("${buildDir}/docs")
     sourceRepo = "https://github.com/${githubSlug}/edit/${githubBranch}/src/main/docs"
     sourceDir = new File(projectDir, "src/main/docs")
