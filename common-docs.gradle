@@ -26,17 +26,11 @@ task prepareDocResources {
     }
 }
 
-task copyLocalDocResources(type: Copy) {
+task copyLocalDocResources(type: Copy, dependsOn:prepareDocResources) {
     group = DOCUMENTATION_GROUP
     description = 'Copy local resources to build folder'  
     mustRunAfter prepareDocResources
-    from ('src/main/resources') {
-        include '*.png'
-        include '*.gif'
-        include '*.jpg'
-        include '*.svg'
-        include '*.jpeg'
-    }
+    from ('src/main/resources') 
     into docResourcesDir
 }
 
@@ -49,7 +43,7 @@ dependencies {
 }
 
 task clean(type: Delete) {
-    delete(project.file("${buildDir}/docs"))
+    delete(buildDir)
 }
 
 task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask) {
@@ -74,7 +68,7 @@ task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask) {
 task publishGuide(type: grails.doc.gradle.PublishGuide) {
     group = DOCUMENTATION_GROUP
     description = 'Generate Guide'  
-    dependsOn prepareDocResources, copyLocalDocResources
+    dependsOn copyLocalDocResources
 
     targetDir = project.file("${buildDir}/docs")
     sourceRepo = "https://github.com/${githubSlug}/edit/${githubBranch}/src/main/docs"
