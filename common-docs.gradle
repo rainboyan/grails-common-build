@@ -85,6 +85,7 @@ task publishGuide(type: grails.doc.gradle.PublishGuide) {
     properties = [
             'safe':'UNSAFE',
             'version': project.version,
+            'subtitle': project.projectDesc,
             'api': '../api',
             'sourceDir':rootProject.projectDir.absolutePath,
             'sourcedir':rootProject.projectDir.absolutePath,
