@@ -9,6 +9,32 @@ buildscript {
     }
 }
 
+def DOCUMENTATION_GROUP = 'Documentation'
+
+task prepareResources {
+    group = DOCUMENTATION_GROUP
+    description = 'Downloads grails-guides repository master branch and unzip it to build folder'   
+    doLast {
+        ant.mkdir(dir:buildDir)
+        ant.get(src:"https://github.com/${githubSlug}/archive/${githubBranch}.zip", dest:"${buildDir}/resources.zip")    
+        ant.unzip(src:"${buildDir}/resources.zip", dest:"${buildDir}/resources")
+    }
+}
+
+task copyLocalGuideImgResources(type: Copy) {
+    group = DOCUMENTATION_GROUP
+    description = 'Copy local image resources to build folder'  
+    mustRunAfter prepareResources
+    from ('src/main/resources/img') {
+        include '*.png'
+        include '*.gif'
+        include '*.jpg'
+        include '*.svg'
+        include '*.jpeg'
+    }
+    into "${buildDir}/resources/${project.name}-${githubBranch}/src/main/resources/img"
+}
+
 configurations {
     documentation
 }
@@ -22,6 +48,7 @@ task clean(type: Delete) {
 }
 
 task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask) {
+    group = DOCUMENTATION_GROUP
     docTitle = "${project.title} - ${project.version}"
     destinationDir = project.file("build/docs/api")
     notimestamp = true
@@ -40,13 +67,17 @@ task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask) {
 }
 
 task publishGuide(type: grails.doc.gradle.PublishGuide) {
-    description = 'Generate Guide'
+    group = DOCUMENTATION_GROUP
+    description = 'Generate Guide'  
+    dependsOn prepareResources, copyLocalGuideImgResources
+
+    def localResourcesDir = "${buildDir}/resources/${project.name}-${githubBranch}"
     targetDir = project.file("${buildDir}/docs")
     sourceRepo = "https://github.com/${githubSlug}/edit/${githubBranch}/src/main/docs"
     sourceDir = new File(projectDir, "src/main/docs")
     propertiesFiles = [ new File(rootProject.projectDir, "gradle.properties") ]
     asciidoc = true
-    resourcesDir = project.file("${projectDir}/src/main/resources")
+    resourcesDir = project.file("${localResourcesDir}/src/main/resources")
     properties = [
             'safe':'UNSAFE',
             'version': project.version,
@@ -76,7 +107,9 @@ task publishGuide(type: grails.doc.gradle.PublishGuide) {
     }
 }
 
-task docs(dependsOn:[groovydoc, publishGuide])
+task docs(dependsOn:[groovydoc, publishGuide]) {
+    group = DOCUMENTATION_GROUP
+}
 
 task assemble(dependsOn: docs, type:Zip) {
     baseName = "${project.name}-${project.version}"
