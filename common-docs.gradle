@@ -42,11 +42,19 @@ dependencies {
     documentation("org.fusesource.jansi:jansi:1.14")
 }
 
-task clean(type: Delete) {
-    delete(buildDir)
+def cleanTask = project.tasks.findByName("clean")
+if(cleanTask == null) {
+    task clean(type: Delete) {
+        delete(buildDir)
+    }
+}
+else {
+    cleanTask.doLast {
+        ant.delete(dir:"build/docs")
+    }
 }
 
-task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask) {
+task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask, override:true) {
     group = DOCUMENTATION_GROUP
     docTitle = "${project.title} - ${project.version}"
     destinationDir = project.file("build/docs/api")
@@ -59,6 +67,9 @@ task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask) {
         if(subproject.file('src/main/groovy').exists()) {
             files += subproject.files("src/main/groovy")
         }
+    }
+    if(project.file('src/main/groovy').exists()) {
+        files += project.files("src/main/groovy")
     }
     source = files
     classpath = configurations.documentation
@@ -110,8 +121,13 @@ task docs(dependsOn:[groovydoc, publishGuide]) {
     group = DOCUMENTATION_GROUP
 }
 
-task assemble(dependsOn: docs, type:Zip) {
-    baseName = "${project.name}-${project.version}"
-    destinationDir = new File(project.buildDir, "distributions")
-    from project.files("${buildDir}/docs")
+def assembleTask = project.tasks.findByName("assemble")
+if(assembleTask == null) {
+    task assemble(dependsOn: docs, type:Zip) {
+        baseName = "${project.name}-${project.version}"
+        destinationDir = new File(project.buildDir, "distributions")
+        from project.files("${buildDir}/docs")
+    }
 }
+
+
