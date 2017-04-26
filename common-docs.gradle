@@ -30,7 +30,7 @@ task copyLocalDocResources(type: Copy, dependsOn:prepareDocResources) {
     group = DOCUMENTATION_GROUP
     description = 'Copy local resources to build folder'  
     mustRunAfter prepareDocResources
-    from ('src/main/resources') 
+    from ('src/main/docs/resources') 
     into docResourcesDir
 }
 
