@@ -54,7 +54,7 @@ else {
     }
 }
 
-task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask, override:true) {
+task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask, overwrite:true) {
     group = DOCUMENTATION_GROUP
     docTitle = "${project.title} - ${project.version}"
     destinationDir = project.file("build/docs/api")
