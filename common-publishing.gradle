@@ -46,8 +46,11 @@ ext.pomInfo = {
         }
     }
 }
-modifyPom {
-    project(pomInfo)
+
+if(!isGrailsPlugin) {
+    modifyPom {
+        project(pomInfo)
+    }
 }
 
 publishing {
