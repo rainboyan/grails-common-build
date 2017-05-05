@@ -13,7 +13,10 @@
  */
 apply plugin: 'maven-publish'
 apply plugin: 'com.jfrog.bintray'
-apply plugin: 'com.bmuschko.nexus'
+if(!isGrailsPlugin) {
+    apply plugin: 'com.bmuschko.nexus'
+}
+
 
 ext.pomInfo = {
     delegate.name project.title
