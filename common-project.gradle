@@ -12,9 +12,11 @@ repositories {
 configurations {
     documentation
     all {
-        resolutionStrategy {
-            force "org.codehaus.groovy:groovy:$groovyVersion"
-            force "org.codehaus.groovy:groovy-xml:$groovyVersion"
+        resolutionStrategy.eachDependency { DependencyResolveDetails details -> 
+            String group = details.requested.group
+            if(group == 'org.codehaus.groovy') {
+                 details.useVersion(groovyVersion)
+            } 
         }
     }
 }
