@@ -11,6 +11,12 @@ repositories {
 
 configurations {
     documentation
+    all {
+        resolutionStrategy {
+            force "org.codehaus.groovy:groovy:$groovyVersion"
+            force "org.codehaus.groovy:groovy-xml:$groovyVersion"
+        }
+    }
 }
 
 dependencies {
@@ -25,6 +31,12 @@ dependencies {
 
     documentation("org.fusesource.jansi:jansi:1.14")
 
+}
+
+test {
+    testLogging {
+        events "passed", "skipped", "failed", "standardOut", "standardError"
+    }
 }
 
 groovydoc {
