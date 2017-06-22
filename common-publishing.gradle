@@ -37,12 +37,14 @@ ext.pomInfo = {
         delegate.developerConnection "scm:git@github.com:${githubSlug}.git"
     }
 
-    for(dev in developers.split(',')) {
+    if(developers) {
         delegate.developers {
-            delegate.developer {
-                delegate.id dev.toLowerCase().replace(' ', '')
-                delegate.name dev
-            }
+            for(dev in developers.split(',')) {
+                delegate.developer {
+                    delegate.id dev.toLowerCase().replace(' ', '')
+                    delegate.name dev
+                }
+            }        
         }
     }
 }
