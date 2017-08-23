@@ -89,6 +89,10 @@ publishing {
             if(isGrailsPlugin) {
                 artifactId( project.name - 'grails-plugin-' )
             }
+            else if(project.name.contains('/')) {
+                artifactId( project.name.substring(project.name.indexOf('/')) )
+            }
+            
             from components.java
 
             artifact sourcesJar {
