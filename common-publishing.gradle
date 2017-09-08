@@ -90,7 +90,7 @@ publishing {
                 artifactId( project.name - 'grails-plugin-' )
             }
             else if(project.name.contains('/')) {
-                artifactId( project.name.substring(project.name.indexOf('/')) )
+                artifactId( project.name.substring(project.name.indexOf('/') + 1) )
             }
             
             from components.java
