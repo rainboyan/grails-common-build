@@ -42,13 +42,6 @@ dependencies {
     documentation("org.fusesource.jansi:jansi:1.14")
 }
 
-subprojects {
-    dependencies {
-        documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
-        documentation "org.codehaus.groovy:groovy-cli-picocli:$groovyVersion"
-    }
-}
-
 def cleanTask = project.tasks.findByName("clean")
 if(cleanTask == null) {
     task clean(type: Delete) {
