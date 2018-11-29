@@ -39,14 +39,18 @@ configurations {
 }
 
 dependencies {
-    documentation("org.fusesource.jansi:jansi:1.14")
-    documentation 'info.picocli:picocli:3.8.0'
+    if (configurations.find { it.name == 'documentation' }) {
+        documentation("org.fusesource.jansi:jansi:1.14")
+        documentation 'info.picocli:picocli:3.8.0'
+    }
 }
 
 subprojects {
     dependencies {
-        documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
-        documentation "org.codehaus.groovy:groovy-cli-picocli:$groovyVersion"
+        if (configurations.find { it.name == 'documentation' }) {
+            documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
+            documentation "org.codehaus.groovy:groovy-cli-picocli:$groovyVersion"
+        }
     }
 }
 
