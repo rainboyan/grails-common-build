@@ -14,24 +14,24 @@ def DOCUMENTATION_GROUP = 'Documentation'
 
 def commonGithubOrg = 'grails'
 def commonGithubSlug = 'grails-common-build'
-def commonBranch = 'gradle6'
+def commonBranch = 'master'
 def docResourcesDir = "${buildDir}/resources/${commonGithubSlug}-${commonBranch}/src/main/resources"
 
 task prepareDocResources {
     group = DOCUMENTATION_GROUP
-    description = 'Downloads common documentation resoruces and unzips them to build folder'   
+    description = 'Downloads common documentation resoruces and unzips them to build folder'
     doLast {
         ant.mkdir(dir:buildDir)
-        ant.get(src:"https://github.com/${commonGithubOrg}/${commonGithubSlug}/archive/${commonBranch}.zip", dest:"${buildDir}/resources.zip")    
+        ant.get(src:"https://github.com/${commonGithubOrg}/${commonGithubSlug}/archive/${commonBranch}.zip", dest:"${buildDir}/resources.zip")
         ant.unzip(src:"${buildDir}/resources.zip", dest:"${buildDir}/resources")
     }
 }
 
 task copyLocalDocResources(type: Copy, dependsOn:prepareDocResources) {
     group = DOCUMENTATION_GROUP
-    description = 'Copy local resources to build folder'  
+    description = 'Copy local resources to build folder'
     mustRunAfter prepareDocResources
-    from ('src/main/docs/resources') 
+    from ('src/main/docs/resources')
     into docResourcesDir
 }
 
@@ -41,18 +41,35 @@ configurations {
 
 dependencies {
     if (configurations.find { it.name == 'documentation' }) {
-        documentation("org.fusesource.jansi:jansi:1.14")
         documentation 'info.picocli:picocli:3.8.0'
+        documentation "org.fusesource.jansi:jansi:1.18"
+        documentation "jline:jline:2.14.6"
+        documentation "com.github.javaparser:javaparser-core:3.15.14"
+        documentation "org.codehaus.groovy:groovy:${groovyVersion}"
+        documentation "org.codehaus.groovy:groovy-ant:$groovyVersion"
+        documentation "org.codehaus.groovy:groovy-cli-picocli:$groovyVersion"
     }
 }
 
 subprojects {
+
+    configurations {
+        documentation
+    }
+
     dependencies {
         if (configurations.find { it.name == 'documentation' }) {
+            documentation "org.fusesource.jansi:jansi:1.18"
+            documentation "jline:jline:2.14.6"
+            documentation "com.github.javaparser:javaparser-core:3.15.14"
+            documentation "org.codehaus.groovy:groovy:${groovyVersion}"
+            documentation "org.codehaus.groovy:groovy-ant:$groovyVersion"
             documentation "org.codehaus.groovy:groovy-dateutil:$groovyVersion"
             documentation "org.codehaus.groovy:groovy-cli-picocli:$groovyVersion"
         }
     }
+
+    groovydoc.classpath += configurations.documentation
 }
 
 def cleanTask = project.tasks.findByName("clean")
@@ -75,10 +92,10 @@ tasks.withType(Groovydoc) {
     project.rootProject.subprojects
             .findAll { !it.name != 'docs' && !it.name.startsWith('examples') }
             .each { subproject ->
-        if(subproject.file('src/main/groovy').exists()) {
-            files += subproject.files("src/main/groovy")
-        }
-    }
+                if(subproject.file('src/main/groovy').exists()) {
+                    files += subproject.files("src/main/groovy")
+                }
+            }
     if(project.file('src/main/groovy').exists()) {
         files += project.files("src/main/groovy")
     }
@@ -88,7 +105,7 @@ tasks.withType(Groovydoc) {
 
 task publishGuide(type: grails.doc.gradle.PublishGuide) {
     group = DOCUMENTATION_GROUP
-    description = 'Generate Guide'  
+    description = 'Generate Guide'
     dependsOn copyLocalDocResources
 
     targetDir = project.file("${buildDir}/docs")
@@ -139,5 +156,3 @@ if(assembleTask == null) {
         from project.files("${buildDir}/docs")
     }
 }
-
-
