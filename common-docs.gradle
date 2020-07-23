@@ -1,19 +1,20 @@
 buildscript {
     repositories {
-        mavenLocal()
         maven { url "https://repo.grails.org/grails/core" }
     }
     dependencies {
         classpath "org.grails:grails-docs:${project.ext.properties.grailsDocsVersion ?: grailsVersion}"
-        classpath 'io.github.groovylang.groovydoc:groovydoc-gradle-plugin:1.0.1'
     }
 }
+
+apply plugin: 'java-library'
+apply plugin: 'groovy'
 
 def DOCUMENTATION_GROUP = 'Documentation'
 
 def commonGithubOrg = 'grails'
 def commonGithubSlug = 'grails-common-build'
-def commonBranch = 'master'
+def commonBranch = 'gradle6'
 def docResourcesDir = "${buildDir}/resources/${commonGithubSlug}-${commonBranch}/src/main/resources"
 
 task prepareDocResources {
@@ -66,12 +67,10 @@ else {
     }
 }
 
-task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask, overwrite:true) {
+tasks.withType(Groovydoc) {
     group = DOCUMENTATION_GROUP
     docTitle = "${project.title} - ${project.version}"
     destinationDir = project.file("build/docs/api")
-    notimestamp = true
-    noversionstamp = true
     def files = []
     project.rootProject.subprojects
             .findAll { !it.name != 'docs' && !it.name.startsWith('examples') }
@@ -84,8 +83,7 @@ task groovydoc(type:org.groovy.lang.groovydoc.tasks.GroovydocTask, overwrite:tru
         files += project.files("src/main/groovy")
     }
     source = files
-    classpath = configurations.documentation
-    jvmArgs "-Xmx1024m"
+    classpath += configurations.documentation
 }
 
 task publishGuide(type: grails.doc.gradle.PublishGuide) {
