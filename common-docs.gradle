@@ -31,7 +31,6 @@ task copyLocalDocResources(type: Copy, dependsOn:prepareDocResources) {
     group = DOCUMENTATION_GROUP
     description = 'Copy local resources to build folder'
     mustRunAfter prepareDocResources
-    exclude '**/*.gitkeep'
     from ('src/main/docs/resources')
     into docResourcesDir
 }
