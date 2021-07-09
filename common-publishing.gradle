@@ -47,8 +47,8 @@ if (isReleaseVersion) {
             }
         }
         transitionCheckOptions {
-             maxRetries.set(20)
-             delayBetween.set(java.time.Duration.ofMillis(2))
+             maxRetries.set(40)
+             delayBetween.set(java.time.Duration.ofMillis(5))
         }
     }
 }
