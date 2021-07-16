@@ -23,7 +23,7 @@ buildscript {
 }
 
 ext {
-    isBuildSnapshot = version.endsWith('-SNAPSHOT')
+    isBuildSnapshot = project.projectVersion.endsWith('-SNAPSHOT')
     isReleaseVersion = !isBuildSnapshot
 }
 
