@@ -162,13 +162,13 @@ subprojects { project ->
 
         afterEvaluate {
             signing {
-                required { isReleaseVersion }
+                required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
                 sign publishing.publications.maven
             }
         }
 
         tasks.withType(Sign) {
-            onlyIf {  !project.projectVersion.endsWith('-SNAPSHOT') }
+            onlyIf { isReleaseVersion }
         }
 
         //do not generate extra load on Nexus with new staging repository if signing fails
