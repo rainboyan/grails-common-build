@@ -170,7 +170,10 @@ subprojects { project ->
             }
 
             tasks.withType(Sign) {
-                onlyIf { isReleaseVersion }
+                onlyIf {
+                    println "Is Release Version: $project.projectVersion"
+                    println "Is Release Version: $isReleaseVersion"
+                    isReleaseVersion }
             }
         }
 
