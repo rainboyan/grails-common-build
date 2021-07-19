@@ -54,14 +54,7 @@ subprojects { project ->
     ext {
         isExample = project.name.startsWith('example')
         isGrailsPlugin = project.name.startsWith('grails-plugin')
-    }
-
-    if (!isExample) {
-
-        apply plugin: 'maven-publish'
-        apply plugin: 'signing'
-
-        ext.pomInfo = {
+        pomInfo = {
             delegate.name project.title
             delegate.description project.projectDesc
             delegate.url projectUrl
@@ -91,6 +84,12 @@ subprojects { project ->
                 }
             }
         }
+    }
+
+    if (!isExample) {
+
+        apply plugin: 'maven-publish'
+        apply plugin: 'signing'
 
         Task sourcesJar = project.tasks.findByName("sourcesJar")
         if (!sourcesJar) {
@@ -114,7 +113,6 @@ subprojects { project ->
         tasks.findByName("assemble").finalizedBy(sourcesJar, javadocJar)
 
         publishing {
-
             if (isSnapshot) {
                 repositories {
                     maven {
@@ -165,16 +163,17 @@ subprojects { project ->
             }
         }
 
-        afterEvaluate {
+        project.afterEvaluate {
             signing {
                 required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
                 sign publishing.publications.maven
             }
+
+            tasks.withType(Sign) {
+                onlyIf { isReleaseVersion }
+            }
         }
 
-        tasks.withType(Sign) {
-            onlyIf { !project.projectVersion.endsWith('SNAPSHOT') }
-        }
 
         //do not generate extra load on Nexus with new staging repository if signing fails
         tasks.withType(io.github.gradlenexus.publishplugin.InitializeNexusStagingRepository).configureEach {
