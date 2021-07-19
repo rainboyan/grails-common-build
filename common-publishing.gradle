@@ -89,8 +89,11 @@ subprojects { project ->
     if (!isExample) {
 
         apply plugin: 'maven-publish'
-        apply plugin: 'signing'
-
+        
+        if (isReleaseVersion) {
+            apply plugin: 'signing'
+        }
+        
         Task sourcesJar = project.tasks.findByName("sourcesJar")
         if (!sourcesJar) {
             sourcesJar = tasks.create("sourcesJar", Jar) {
@@ -163,24 +166,18 @@ subprojects { project ->
             }
         }
 
-        project.afterEvaluate {
-            signing {
-                required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
-                sign publishing.publications.maven
+        if (isReleaseVersion) {
+            project.afterEvaluate {
+                signing {
+                    required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
+                    sign publishing.publications.maven
+                }
             }
-
-            tasks.withType(Sign) {
-                onlyIf {
-                    println "Is Release Version: $project.projectVersion"
-                    println "Is Release Version: $isReleaseVersion"
-                    isReleaseVersion }
+        
+            //do not generate extra load on Nexus with new staging repository if signing fails
+            tasks.withType(io.github.gradlenexus.publishplugin.InitializeNexusStagingRepository).configureEach {
+                shouldRunAfter(tasks.withType(Sign))
             }
-        }
-
-
-        //do not generate extra load on Nexus with new staging repository if signing fails
-        tasks.withType(io.github.gradlenexus.publishplugin.InitializeNexusStagingRepository).configureEach {
-            shouldRunAfter(tasks.withType(Sign))
         }
     }
 
