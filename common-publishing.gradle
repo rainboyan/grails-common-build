@@ -18,15 +18,11 @@ buildscript {
     }
     dependencies {
         classpath "io.github.gradle-nexus:publish-plugin:1.0.0"
-        classpath "com.bmuschko:gradle-nexus-plugin:2.3.1"
     }
 }
 
-ext {
-    isBuildSnapshot = project.projectVersion.endsWith('-SNAPSHOT')
-    isReleaseVersion = !isBuildSnapshot
-}
-
+ext.isSnapshot = project.projectVersion.endsWith('-SNAPSHOT')
+ext.isReleaseVersion = !isSnapshot
 ext."signing.keyId" = project.hasProperty("signing.keyId") ? project.getProperty('signing.keyId') : System.getenv('SIGNING_KEY')
 ext."signing.secretKeyRingFile" = project.hasProperty("signing.secretKeyRingFile") ? project.getProperty('signing.secretKeyRingFile') : "${System.properties['user.home']}${File.separator}.gnupg${File.separator}secring.gpg"
 ext."signing.password" = project.hasProperty("signing.password") ? project.getProperty('signing.password') : System.getenv('SIGNING_PASSPHRASE')
@@ -65,11 +61,6 @@ subprojects { project ->
         apply plugin: 'maven-publish'
         apply plugin: 'signing'
 
-        if (!isGrailsPlugin) {
-            apply plugin: 'com.bmuschko.nexus'
-        }
-
-
         ext.pomInfo = {
             delegate.name project.title
             delegate.description project.projectDesc
@@ -101,15 +92,30 @@ subprojects { project ->
             }
         }
 
-        if (!isGrailsPlugin) {
-            modifyPom {
-                project(pomInfo)
+        Task sourcesJar = project.tasks.findByName("sourcesJar")
+        if (!sourcesJar) {
+            sourcesJar = tasks.create("sourcesJar", Jar) {
+                classifier = 'sources'
+                group = BasePlugin.BUILD_GROUP
+                description = 'Assembles a jar archive containing the main sources of this project.'
+                from project.sourceSets.main.allSource
             }
         }
 
+        Task javadocJar = project.tasks.findByName("javadocJar")
+        if (!javadocJar) {
+            javadocJar = tasks.create("javadocJar", Jar) {
+                classifier = 'javadoc'
+                group = BasePlugin.BUILD_GROUP
+                description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
+                from project.plugins.hasPlugin(GroovyPlugin) ? project.tasks.getByName(GroovyPlugin.GROOVYDOC_TASK_NAME) : project.tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME)
+            }
+        }
+        tasks.findByName("assemble").finalizedBy(sourcesJar, javadocJar)
+
         publishing {
 
-            if (isBuildSnapshot) {
+            if (isSnapshot) {
                 repositories {
                     maven {
                         credentials {
@@ -137,10 +143,9 @@ subprojects { project ->
 
                     from components.java
 
-                    afterEvaluate {
-                        artifact source: sourcesJar, classifier: "sources"
-                        artifact source: javadocJar, classifier: "javadoc"
-                    }
+                    artifact sourcesJar
+                    artifact javadocJar
+
                     if (isGrailsPlugin) {
                         artifact source: "${project.buildDir}/classes/groovy/main/META-INF/grails-plugin.xml",
                                 classifier: "plugin",
