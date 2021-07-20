@@ -27,8 +27,6 @@ ext."signing.keyId" = project.hasProperty("signing.keyId") ? project.getProperty
 ext."signing.secretKeyRingFile" = project.hasProperty("signing.secretKeyRingFile") ? project.getProperty('signing.secretKeyRingFile') : "${System.properties['user.home']}${File.separator}.gnupg${File.separator}secring.gpg"
 ext."signing.password" = project.hasProperty("signing.password") ? project.getProperty('signing.password') : System.getenv('SIGNING_PASSPHRASE')
 
-println "Release: $project.projectVersion"
-println "Is Release Version: $isReleaseVersion"
 if (isReleaseVersion) {
     apply plugin: 'maven-publish'
     apply plugin: "io.github.gradle-nexus.publish-plugin"
@@ -51,14 +49,14 @@ if (isReleaseVersion) {
     }
 }
 
-subprojects { project ->
+subprojects { subproject ->
 
     ext {
-        isExample = project.name.startsWith('example')
-        isGrailsPlugin = project.name.startsWith('grails-plugin')
+        isExample = subproject.name.startsWith('example')
+        isGrailsPlugin = subproject.name.startsWith('grails-plugin')
         pomInfo = {
-            delegate.name project.title
-            delegate.description project.projectDesc
+            delegate.name subproject.title
+            delegate.description subproject.projectDesc
             delegate.url projectUrl
 
             delegate.licenses {
@@ -91,28 +89,25 @@ subprojects { project ->
     if (!isExample) {
 
         apply plugin: 'maven-publish'
+        apply plugin: 'signing'
 
-        if (isReleaseVersion) {
-            apply plugin: 'signing'
-        }
-
-        Task sourcesJar = project.tasks.findByName("sourcesJar")
+        Task sourcesJar = subproject.tasks.findByName("sourcesJar")
         if (!sourcesJar) {
             sourcesJar = tasks.create("sourcesJar", Jar) {
                 classifier = 'sources'
                 group = BasePlugin.BUILD_GROUP
                 description = 'Assembles a jar archive containing the main sources of this project.'
-                from project.sourceSets.main.allSource
+                from subproject.sourceSets.main.allSource
             }
         }
 
-        Task javadocJar = project.tasks.findByName("javadocJar")
+        Task javadocJar = subproject.tasks.findByName("javadocJar")
         if (!javadocJar) {
             javadocJar = tasks.create("javadocJar", Jar) {
                 classifier = 'javadoc'
                 group = BasePlugin.BUILD_GROUP
                 description = 'Assembles a jar archive containing the generated Javadoc API documentation of this project.'
-                from project.plugins.hasPlugin(GroovyPlugin) ? project.tasks.getByName(GroovyPlugin.GROOVYDOC_TASK_NAME) : project.tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME)
+                from subproject.plugins.hasPlugin(GroovyPlugin) ? subproject.tasks.getByName(GroovyPlugin.GROOVYDOC_TASK_NAME) : subproject.tasks.getByName(JavaPlugin.JAVADOC_TASK_NAME)
             }
         }
         tasks.findByName("assemble").finalizedBy(sourcesJar, javadocJar)
@@ -122,8 +117,8 @@ subprojects { project ->
                 repositories {
                     maven {
                         credentials {
-                            def u = System.getenv("ARTIFACTORY_USERNAME") ?: project.hasProperty("artifactoryPublishUsername") ? project.artifactoryPublishUsername : ''
-                            def p = System.getenv("ARTIFACTORY_PASSWORD") ?: project.hasProperty("artifactoryPublishPassword") ? project.artifactoryPublishPassword : ''
+                            def u = System.getenv("ARTIFACTORY_USERNAME") ?: subproject.hasProperty("artifactoryPublishUsername") ? subproject.artifactoryPublishUsername : ''
+                            def p = System.getenv("ARTIFACTORY_PASSWORD") ?: subproject.hasProperty("artifactoryPublishPassword") ? subproject.artifactoryPublishPassword : ''
                             username = u
                             password = p
                         }
@@ -139,9 +134,9 @@ subprojects { project ->
             publications {
                 maven(MavenPublication) {
                     if (isGrailsPlugin) {
-                        artifactId(project.name - 'grails-plugin-')
-                    } else if (project.name.contains('/')) {
-                        artifactId(project.name.substring(project.name.indexOf('/') + 1))
+                        artifactId(subproject.name - 'grails-plugin-')
+                    } else if (subproject.name.contains('/')) {
+                        artifactId(subproject.name.substring(subproject.name.indexOf('/') + 1))
                     }
 
                     from components.java
@@ -150,7 +145,7 @@ subprojects { project ->
                     artifact javadocJar
 
                     if (isGrailsPlugin) {
-                        artifact source: "${project.buildDir}/classes/groovy/main/META-INF/grails-plugin.xml",
+                        artifact source: "${subproject.buildDir}/classes/groovy/main/META-INF/grails-plugin.xml",
                                 classifier: "plugin",
                                 extension: 'xml'
                     }
@@ -168,23 +163,20 @@ subprojects { project ->
             }
         }
 
-        if (isReleaseVersion) {
-            project.afterEvaluate {
-                signing {
-                    required { isReleaseVersion && gradle.taskGraph.hasTask("publish") }
-                    sign publishing.publications.maven
-                }
+        subproject.afterEvaluate {
+            signing {
+                required { isReleaseVersion  }
+                sign publishing.publications.maven
             }
+        }
 
-            tasks.withType(Sign) {
-                onlyIf { isReleaseVersion }
-            }
+        tasks.withType(Sign) {
+            onlyIf { isReleaseVersion }
+        }
 
-
-            //do not generate extra load on Nexus with new staging repository if signing fails
-            tasks.withType(io.github.gradlenexus.publishplugin.InitializeNexusStagingRepository).configureEach {
-                shouldRunAfter(tasks.withType(Sign))
-            }
+        //do not generate extra load on Nexus with new staging repository if signing fails
+        tasks.withType(io.github.gradlenexus.publishplugin.InitializeNexusStagingRepository).configureEach {
+            shouldRunAfter(tasks.withType(Sign))
         }
     }
 
