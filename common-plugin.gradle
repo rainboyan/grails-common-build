@@ -47,4 +47,15 @@ test {
     }
 }
 
-groovydoc.classpath += (configurations.documentation + configurations.compileClasspath)
+// groovydoc.classpath += (configurations.documentation + configurations.compileClasspath)
+
+groovydoc.doFirst {
+    classpath += (configurations.documentation + configurations.compileClasspath)
+}
+
+bootJar.enabled = false
+
+jar {
+    enabled = true
+    archiveClassifier.set('')
+}
