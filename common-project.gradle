@@ -31,8 +31,8 @@ dependencies {
     testImplementation "org.spockframework:spock-core:${spockVersion}", {
         exclude module:'groovy-all'
     }
-    testImplementation "cglib:cglib-nodep:2.2.2"
-    testImplementation "org.objenesis:objenesis:1.4"
+    // testImplementation "cglib:cglib-nodep:3.3.0"
+    // testImplementation "org.objenesis:objenesis:3.3"
 
     documentation "org.fusesource.jansi:jansi:1.14"
 
