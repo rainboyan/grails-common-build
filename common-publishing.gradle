@@ -176,7 +176,7 @@ subprojects { subproject ->
         //     onlyIf { isReleaseVersion }
         // }
 
-        //do not generate extra load on Nexus with new staging repository if signing fails
+        // //do not generate extra load on Nexus with new staging repository if signing fails
         // tasks.withType(io.github.gradlenexus.publishplugin.InitializeNexusStagingRepository).configureEach {
         //     shouldRunAfter(tasks.withType(Sign))
         // }
